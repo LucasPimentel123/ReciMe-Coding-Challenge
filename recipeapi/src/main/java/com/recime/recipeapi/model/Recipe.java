@@ -4,12 +4,22 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "recipes")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Recipe {
+
+    public Recipe(Long recipeId, String title, String description, Integer servings) {
+        this.recipeId = recipeId;
+        this.title = title;
+        this.description = description;
+        this.servings = servings;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long recipeId;
@@ -27,6 +37,6 @@ public class Recipe {
     private List<Instruction> instructions;
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
-    private List<RecepiesIngredients> recepiesIngredients;
+    private List<RecipesIngredients> recipiesIngredients;
 
 }

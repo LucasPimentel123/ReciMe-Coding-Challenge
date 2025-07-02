@@ -8,11 +8,11 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RecepiesIngredients {
+public class RecipesIngredients {
     @EmbeddedId
-    private RecepiesIngredientsId id;
+    private RecipesIngredientsId id;
 
-    @Column(name = "metric", nullable = false)
+    @Column(name = "metric", nullable = true)
     private String metric;
 
     @Column(name = "quantity", nullable = false)
