@@ -33,14 +33,14 @@ public class RecipeController {
 
     @GetMapping()
     public ResponseEntity<List<RecipeResponseDto>> getAll(
-            @RequestParam() Optional<Boolean> isVegetarian,
+            @RequestParam() Optional<Boolean> vegetarian,
             @RequestParam() Optional<Integer> servings,
             @RequestParam() Optional<String> instructionContent,
             @RequestParam() Optional<List<String>> includeIngredients,
             @RequestParam() Optional<List<String>> excludeIngredients) {
 
         try {
-            List<RecipeResponseDto> recipes = service.getAllWithFilters(isVegetarian, servings, instructionContent,
+            List<RecipeResponseDto> recipes = service.getAllWithFilters(vegetarian, servings, instructionContent,
                     includeIngredients, excludeIngredients);
             return ResponseEntity.ok(recipes);
         } catch (Exception ex) {

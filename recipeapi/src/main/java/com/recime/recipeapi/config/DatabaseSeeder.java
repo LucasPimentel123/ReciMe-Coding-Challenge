@@ -88,7 +88,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         List<Ingredient> newIngredients = createCarbonaraIngredients();
         ingredientRepository.saveAll(newIngredients);
 
-        Recipe carbonaraRecipe = new Recipe(null, "Carbonara", "Italian pasta dish.", 2);
+        Recipe carbonaraRecipe = new Recipe(null, "Spaghetti alla Carbonara", "Italian pasta dish.", 2);
         recipeRepository.save(carbonaraRecipe);
 
         List<RecipesIngredients> recipeIngredients = createCarbonaraRecipeIngredients(
