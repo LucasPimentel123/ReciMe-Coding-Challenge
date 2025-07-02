@@ -11,7 +11,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class MeasurementId implements Serializable {
+public class RecepiesIngredientsId implements Serializable {
 
     private Long ingredient_id;
     private Long recipe_id;

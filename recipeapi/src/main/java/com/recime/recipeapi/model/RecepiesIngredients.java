@@ -4,13 +4,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "measurements")
+@Table(name = "recepies_ingredients")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Measurement {
+public class RecepiesIngredients {
     @EmbeddedId
-    private MeasurementId id;
+    private RecepiesIngredientsId id;
 
     @Column(name = "metric", nullable = false)
     private String metric;

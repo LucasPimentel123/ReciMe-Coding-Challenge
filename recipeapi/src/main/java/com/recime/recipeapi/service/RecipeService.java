@@ -11,7 +11,7 @@ import com.recime.recipeapi.dto.IngredientWithMeasurementDto;
 import com.recime.recipeapi.dto.InstructionDto;
 import com.recime.recipeapi.dto.RecipeResponseDto;
 import com.recime.recipeapi.model.Instruction;
-import com.recime.recipeapi.model.Measurement;
+import com.recime.recipeapi.model.RecepiesIngredients;
 import com.recime.recipeapi.model.Recipe;
 import com.recime.recipeapi.repository.RecipeRepository;
 
@@ -20,13 +20,13 @@ public class RecipeService {
 
     private final RecipeRepository repository;
     private final InstructionService instructionService;
-    private final MeasurementService measurementService;
+    private final RecepiesIngredientsService recepiesIngredientsService;
 
     public RecipeService(RecipeRepository repository, InstructionService instructionService,
-            MeasurementService measurementService) {
+            RecepiesIngredientsService recepiesIngredientsService) {
         this.repository = repository;
         this.instructionService = instructionService;
-        this.measurementService = measurementService;
+        this.recepiesIngredientsService = recepiesIngredientsService;
     }
 
     public List<RecipeResponseDto> getAllRecipes() {
@@ -34,7 +34,7 @@ public class RecipeService {
 
         if (recipes.isPresent()) {
             return recipes.get().stream().map(recipe -> {
-                return mapRecipeToDto(recipe, recipe.getInstructions(), recipe.getMeasurements());
+                return mapRecipeToDto(recipe, recipe.getInstructions(), recipe.getRecepiesIngredients());
             }).collect(Collectors.toList());
         }
 
@@ -45,23 +45,24 @@ public class RecipeService {
         Optional<Recipe> recipe = repository.findById(id);
         if (recipe.isPresent()) {
             RecipeResponseDto dto = mapRecipeToDto(recipe.get(), recipe.get().getInstructions(),
-                    recipe.get().getMeasurements());
+                    recipe.get().getRecepiesIngredients());
             return dto;
         }
         return null;
     }
 
     private RecipeResponseDto mapRecipeToDto(Recipe recipe, List<Instruction> instructions,
-            List<Measurement> measurements) {
+            List<RecepiesIngredients> recepiesIngredients) {
 
         List<InstructionDto> instructionDtos = instructions == null
                 ? Collections.emptyList()
                 : instructions.stream().map(instructionService::mapInstructionToDto)
                         .collect(Collectors.toList());
 
-        List<IngredientWithMeasurementDto> ingredientWithMeasurementDtos = measurements == null
+        List<IngredientWithMeasurementDto> ingredientWithMeasurementDtos = recepiesIngredients == null
                 ? Collections.emptyList()
-                : measurements.stream().map(measurementService::mapMeasurementToIngredientWithMeasurementDto)
+                : recepiesIngredients.stream()
+                        .map(recepiesIngredientsService::mapRecepiesIngredientsToIngredientWithMeasurementDto)
                         .collect(Collectors.toList());
 
         return new RecipeResponseDto(recipe.getRecipeId(), recipe.getTitle(), recipe.getDescription(),
