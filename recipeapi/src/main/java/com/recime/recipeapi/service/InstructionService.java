@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.recime.recipeapi.dto.instruction.InstructionDto;
 import com.recime.recipeapi.dto.instruction.InstructionResponseDto;
+import com.recime.recipeapi.mapper.InstructionMapper;
 import com.recime.recipeapi.model.Instruction;
 import com.recime.recipeapi.model.Recipe;
 import com.recime.recipeapi.repository.InstructionRepository;
@@ -20,10 +21,13 @@ public class InstructionService implements ServiceInterface<Instruction> {
 
     private final InstructionRepository repository;
     private final RecipeRepository recipeRepository;
+    private final InstructionMapper instructionMapper;
 
-    public InstructionService(InstructionRepository repository, RecipeRepository recipeRepository) {
+    public InstructionService(InstructionRepository repository, RecipeRepository recipeRepository,
+            InstructionMapper instructionMapper) {
         this.repository = repository;
         this.recipeRepository = recipeRepository;
+        this.instructionMapper = instructionMapper;
     }
 
     @Transactional
@@ -47,8 +51,7 @@ public class InstructionService implements ServiceInterface<Instruction> {
     public Optional<Instruction> save(InstructionDto instructionDto) {
         Optional<Recipe> recipe = recipeRepository.findById(instructionDto.getRecipeId());
         if (recipe.isPresent()) {
-            Instruction instruction = new Instruction(null, instructionDto.getStep(), instructionDto.getDescription(),
-                    recipe.get());
+            Instruction instruction = instructionMapper.toEntity(instructionDto, recipe.get());
             return this.save(instruction);
         }
         return Optional.empty();
@@ -63,13 +66,13 @@ public class InstructionService implements ServiceInterface<Instruction> {
     }
 
     public List<InstructionResponseDto> getAllMappedToDto() {
-        return this.getAll().stream().map(this::mapInstructionToResponseDto).collect(Collectors.toList());
+        return this.getAll().stream().map(instructionMapper::toResponseDto).collect(Collectors.toList());
     }
 
     public Optional<InstructionResponseDto> getMappedToDtoById(Long id) {
         Optional<Instruction> instruction = this.getById(id);
         if (instruction.isPresent()) {
-            return Optional.of(this.mapInstructionToResponseDto(instruction.get()));
+            return Optional.of(instructionMapper.toResponseDto(instruction.get()));
         }
         return Optional.empty();
     }
@@ -101,30 +104,9 @@ public class InstructionService implements ServiceInterface<Instruction> {
         repository.deleteByRecipe_RecipeId(recipeId);
     }
 
-    public InstructionDto mapInstructionToDto(Instruction instruction) {
-        InstructionDto dto = new InstructionDto();
-        dto.setStep(instruction.getStep());
-        dto.setDescription(instruction.getDescription());
-        dto.setRecipeId(instruction.getRecipe().getRecipeId());
-        return dto;
-    }
-
-    public InstructionResponseDto mapInstructionToResponseDto(Instruction instruction) {
-        InstructionResponseDto dto = new InstructionResponseDto();
-        dto.setInstructionId(instruction.getInstructionId());
-        dto.setStep(instruction.getStep());
-        dto.setDescription(instruction.getDescription());
-        dto.setRecipeId(instruction.getRecipe().getRecipeId());
-        return dto;
-    }
-
-    public Instruction mapInstructionDtoToEntity(InstructionDto instructionDto, Recipe recipe) {
-        return new Instruction(null, instructionDto.getStep(), instructionDto.getDescription(), recipe);
-    }
-
     @Transactional
-    public Optional<Instruction> mapDtoAndSave(InstructionDto instructionDto, Recipe recipe) {
-        Instruction instruction = mapInstructionDtoToEntity(instructionDto, recipe);
+    public Optional<Instruction> saveDto(InstructionDto instructionDto, Recipe recipe) {
+        Instruction instruction = instructionMapper.toEntity(instructionDto, recipe);
         return this.save(instruction);
     }
 

@@ -60,7 +60,7 @@ public class RecipeController {
 
     @PostMapping()
     public ResponseEntity<Recipe> createRecipe(@RequestBody RecipeDto recipeRequestDto) {
-        Optional<Recipe> savedRecipe = service.mapDtoAndSave(recipeRequestDto);
+        Optional<Recipe> savedRecipe = service.saveDto(recipeRequestDto);
         if (savedRecipe.isPresent()) {
             return ResponseEntity.status(HttpStatus.CREATED).build();
         }

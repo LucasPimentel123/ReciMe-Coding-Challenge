@@ -2,7 +2,7 @@ package com.recime.recipeapi.dto.recipe;
 
 import java.util.List;
 
-import com.recime.recipeapi.dto.ingredient.IngredientWithMeasurementDto;
+import com.recime.recipeapi.dto.RecipesIngredients.RecipesIngredientsWithMeasuresDto;
 import com.recime.recipeapi.dto.instruction.InstructionDto;
 
 import lombok.Data;
@@ -16,7 +16,7 @@ public class RecipeResponseDto extends RecipeDto {
     private Long recipeId;
 
     public RecipeResponseDto(Long recipeId, String title, String description, Integer servings,
-            List<InstructionDto> instructions, List<IngredientWithMeasurementDto> ingredients) {
+            List<InstructionDto> instructions, List<RecipesIngredientsWithMeasuresDto> ingredients) {
         super(title, description, servings, instructions, ingredients);
         this.recipeId = recipeId;
     }

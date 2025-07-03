@@ -1,7 +1,6 @@
 package com.recime.recipeapi.service;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -10,13 +9,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.recime.recipeapi.dto.ingredient.IngredientWithMeasurementDto;
+import com.recime.recipeapi.dto.RecipesIngredients.RecipesIngredientsWithMeasuresDto;
 import com.recime.recipeapi.dto.instruction.InstructionDto;
 import com.recime.recipeapi.dto.recipe.RecipeDto;
 import com.recime.recipeapi.dto.recipe.RecipeResponseDto;
 import com.recime.recipeapi.dto.recipe.RecipeUpdateDto;
-import com.recime.recipeapi.model.Instruction;
-import com.recime.recipeapi.model.RecipesIngredients;
+import com.recime.recipeapi.mapper.RecipeMapper;
 import com.recime.recipeapi.model.Recipe;
 import com.recime.recipeapi.repository.RecipeRepository;
 import com.recime.recipeapi.specification.RecipeSpecification;
@@ -26,15 +24,15 @@ public class RecipeService implements ServiceInterface<Recipe> {
 
     private final RecipeRepository repository;
     private final InstructionService instructionService;
-    private final RecipesIngredientsService recipiesIngredientsService;
-    private final IngredientService ingredientService;
+    private final RecipesIngredientsService recipesIngredientsService;
+    private final RecipeMapper recipeMapper;
 
     public RecipeService(RecipeRepository repository, InstructionService instructionService,
-            RecipesIngredientsService recipiesIngredientsService, IngredientService ingredientService) {
+            RecipesIngredientsService recipesIngredientsService, RecipeMapper recipeMapper) {
         this.repository = repository;
         this.instructionService = instructionService;
-        this.recipiesIngredientsService = recipiesIngredientsService;
-        this.ingredientService = ingredientService;
+        this.recipesIngredientsService = recipesIngredientsService;
+        this.recipeMapper = recipeMapper;
     }
 
     @Transactional
@@ -55,23 +53,12 @@ public class RecipeService implements ServiceInterface<Recipe> {
         }
     }
 
-    public List<RecipeResponseDto> getAllWithFilters(Optional<Boolean> isVegetarian, Optional<Integer> servings,
-            Optional<String> instructionContent, Optional<List<String>> includeIngredients,
-            Optional<List<String>> excludeIngredients) {
-
-        Specification<Recipe> specification = RecipeSpecification.withFilters(isVegetarian, servings,
-                instructionContent,
-                includeIngredients, excludeIngredients);
-
-        Optional<List<Recipe>> recipes = Optional.of(repository.findAll(specification));
-
-        if (recipes.isPresent()) {
-            return recipes.get().stream().map(recipe -> {
-                return mapRecipeToResponseDto(recipe, recipe.getInstructions(), recipe.getRecipiesIngredients());
-            }).collect(Collectors.toList());
+    public Optional<List<Recipe>> getAll(Specification<Recipe> specification) {
+        try {
+            return Optional.of(repository.findAll(specification));
+        } catch (Exception ex) {
+            return Optional.empty();
         }
-
-        return Collections.emptyList();
     }
 
     public Optional<Recipe> getById(Long id) {
@@ -82,43 +69,11 @@ public class RecipeService implements ServiceInterface<Recipe> {
         }
     }
 
-    public Optional<RecipeResponseDto> getMappedResponseDtoById(Long id) {
-        Optional<Recipe> recipe = this.getById(id);
-        if (recipe.isPresent()) {
-            RecipeResponseDto dto = mapRecipeToResponseDto(recipe.get(), recipe.get().getInstructions(),
-                    recipe.get().getRecipiesIngredients());
-            return Optional.of(dto);
-        }
-        return Optional.empty();
-    }
-
     @Transactional
-    public Optional<Recipe> mapDtoAndSave(RecipeDto recipeRequestDto) {
-        Recipe recipeToSave = new Recipe(null, recipeRequestDto.getTitle(), recipeRequestDto.getDescription(),
-                recipeRequestDto.getServings());
-
-        Optional<Recipe> savedRecipe = this.save(recipeToSave);
-
-        if (savedRecipe.isPresent()) {
-            this.saveRecipeInstructions(recipeRequestDto.getInstructions(), savedRecipe.get());
-            this.saveRecipeIngredients(recipeRequestDto.getIngredients(), savedRecipe.get());
-        } else {
-            return Optional.empty();
-        }
-
-        return savedRecipe;
-    }
-
-    @Transactional
-    private void saveRecipeInstructions(List<InstructionDto> instructions, Recipe recipe) {
-        instructions.forEach(instructionDto -> instructionService.mapInstructionDtoToEntity(instructionDto,
-                recipe));
-    }
-
-    @Transactional
-    private void saveRecipeIngredients(List<IngredientWithMeasurementDto> ingredients, Recipe recipe) {
-        ingredients.forEach(ingredientDto -> ingredientService.saveIngredientsAndRecipesMeasurements(ingredientDto,
-                recipe));
+    public void delete(Long id) {
+        instructionService.deleteByRecipeId(id);
+        recipesIngredientsService.deleteByRecipeId(id);
+        repository.deleteById(id);
     }
 
     public Optional<Recipe> update(Long id, RecipeUpdateDto recipeUpdateDto) {
@@ -133,29 +88,63 @@ public class RecipeService implements ServiceInterface<Recipe> {
     }
 
     @Transactional
-    public void delete(Long id) {
-        instructionService.deleteByRecipeId(id);
-        recipiesIngredientsService.deleteByRecipeId(id);
-        repository.deleteById(id);
+    public List<RecipeResponseDto> getAllWithFilters(Optional<Boolean> isVegetarian, Optional<Integer> servings,
+            Optional<String> instructionContent, Optional<List<String>> includeIngredients,
+            Optional<List<String>> excludeIngredients) {
+
+        Specification<Recipe> specification = RecipeSpecification.withFilters(isVegetarian, servings,
+                instructionContent,
+                includeIngredients, excludeIngredients);
+
+        Optional<List<Recipe>> recipes = this.getAll(specification);
+
+        if (recipes.isPresent()) {
+            return recipes.get().stream()
+                    .map(recipe -> recipeMapper.toResponseDto(recipe, recipe.getInstructions(),
+                            recipe.getRecipiesIngredients()))
+                    .collect(Collectors.toList());
+        }
+
+        return Collections.emptyList();
     }
 
-    private RecipeResponseDto mapRecipeToResponseDto(Recipe recipe, List<Instruction> instructions,
-            List<RecipesIngredients> recipiesIngredients) {
+    @Transactional
+    public Optional<RecipeResponseDto> getMappedResponseDtoById(Long id) {
+        Optional<Recipe> recipe = this.getById(id);
+        if (recipe.isPresent()) {
+            RecipeResponseDto dto = recipeMapper.toResponseDto(recipe.get(),
+                    recipe.get().getInstructions(), recipe.get().getRecipiesIngredients());
+            return Optional.of(dto);
+        }
+        return Optional.empty();
+    }
 
-        List<InstructionDto> instructionDtos = instructions == null
-                ? Collections.emptyList()
-                : instructions.stream()
-                        .map(instructionService::mapInstructionToDto)
-                        .sorted(Comparator.comparing(InstructionDto::getStep))
-                        .collect(Collectors.toList());
+    @Transactional
+    public Optional<Recipe> saveDto(RecipeDto recipeRequestDto) {
+        Recipe recipeToSave = recipeMapper.toEntity(recipeRequestDto);
 
-        List<IngredientWithMeasurementDto> ingredientWithMeasurementDtos = recipiesIngredients == null
-                ? Collections.emptyList()
-                : recipiesIngredients.stream()
-                        .map(recipiesIngredientsService::mapRecepiesIngredientsToIngredientWithMeasurementDto)
-                        .collect(Collectors.toList());
+        Optional<Recipe> savedRecipe = this.save(recipeToSave);
 
-        return new RecipeResponseDto(recipe.getRecipeId(), recipe.getTitle(), recipe.getDescription(),
-                recipe.getServings(), instructionDtos, ingredientWithMeasurementDtos);
+        if (savedRecipe.isPresent()) {
+
+            this.saveRecipeInstructions(recipeRequestDto.getInstructions(), savedRecipe.get());
+            this.saveRecipeIngredients(recipeRequestDto.getIngredients(), savedRecipe.get());
+
+        } else {
+            return Optional.empty();
+        }
+
+        return savedRecipe;
+    }
+
+    private void saveRecipeInstructions(List<InstructionDto> instructions, Recipe recipe) {
+        instructions.forEach(instructionDto -> instructionService.saveDto(instructionDto, recipe));
+    }
+
+    @Transactional
+    private void saveRecipeIngredients(List<RecipesIngredientsWithMeasuresDto> ingredients, Recipe recipe) {
+        ingredients
+                .forEach(ingredientDto -> recipesIngredientsService.saveIngredientsAndRecipesMeasurements(ingredientDto,
+                        recipe));
     }
 }

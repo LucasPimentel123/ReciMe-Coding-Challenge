@@ -10,7 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.recime.recipeapi.dto.RecipesIngredients.RecipesIngredientsDto;
 import com.recime.recipeapi.dto.RecipesIngredients.RecipesIngredientsIdDto;
-import com.recime.recipeapi.dto.ingredient.IngredientWithMeasurementDto;
+import com.recime.recipeapi.dto.RecipesIngredients.RecipesIngredientsWithMeasuresDto;
+import com.recime.recipeapi.mapper.RecipesIngredientsMapper;
 import com.recime.recipeapi.model.Ingredient;
 import com.recime.recipeapi.model.RecipesIngredients;
 import com.recime.recipeapi.model.RecipesIngredientsId;
@@ -23,15 +24,18 @@ import com.recime.recipeapi.repository.RecipesIngredientsRepository;
 public class RecipesIngredientsService implements ServiceInterface<RecipesIngredients> {
 
     private final RecipesIngredientsRepository repository;
-    private final IngredientRepository ingredientRepository;
+    private final IngredientService ingredientService;
     private final RecipeRepository recipeRepository;
+    private final RecipesIngredientsMapper recipesIngredientsMapper;
 
     public RecipesIngredientsService(RecipesIngredientsRepository repository,
-            IngredientRepository ingredientRepository,
-            RecipeRepository recipeRepository) {
+            IngredientService ingredientService,
+            RecipeRepository recipeRepository,
+            RecipesIngredientsMapper recipesIngredientsMapper) {
         this.repository = repository;
-        this.ingredientRepository = ingredientRepository;
+        this.ingredientService = ingredientService;
         this.recipeRepository = recipeRepository;
+        this.recipesIngredientsMapper = recipesIngredientsMapper;
     }
 
     @Transactional
@@ -53,13 +57,14 @@ public class RecipesIngredientsService implements ServiceInterface<RecipesIngred
     }
 
     public Optional<RecipesIngredients> save(RecipesIngredientsDto recipiesIngredientsDto) {
-        Optional<Ingredient> ingredient = ingredientRepository.findById(recipiesIngredientsDto.getIngredientId());
+        Optional<Ingredient> ingredient = ingredientService.getById(recipiesIngredientsDto.getIngredientId());
         Optional<Recipe> recipe = recipeRepository.findById(recipiesIngredientsDto.getRecipeId());
         if (ingredient.isPresent() && recipe.isPresent()) {
             RecipesIngredientsId id = new RecipesIngredientsId(ingredient.get().getIngredientId(),
                     recipe.get().getRecipeId());
-            return this.save(new RecipesIngredients(id, recipiesIngredientsDto.getMetric(),
-                    recipiesIngredientsDto.getQuantity(), ingredient.get(), recipe.get()));
+            RecipesIngredients recepiesIngredientsEntity = recipesIngredientsMapper.toEntity(id, ingredient.get(),
+                    recipe.get(), recipiesIngredientsDto);
+            return this.save(recepiesIngredientsEntity);
         }
         return Optional.empty();
     }
@@ -69,17 +74,8 @@ public class RecipesIngredientsService implements ServiceInterface<RecipesIngred
     }
 
     public List<RecipesIngredientsDto> getAllMappedToDto() {
-        return repository.findAll().stream().map(this::mapRecepiesIngredientsToDto)
+        return repository.findAll().stream().map(recipesIngredientsMapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    public RecipesIngredientsDto mapRecepiesIngredientsToDto(RecipesIngredients recepiesIngredients) {
-        RecipesIngredientsDto dto = new RecipesIngredientsDto();
-        dto.setIngredientId(recepiesIngredients.getIngredient().getIngredientId());
-        dto.setRecipeId(recepiesIngredients.getRecipe().getRecipeId());
-        dto.setMetric(recepiesIngredients.getMetric());
-        dto.setQuantity(recepiesIngredients.getQuantity());
-        return dto;
     }
 
     public Optional<RecipesIngredients> getById(Long ingredientId, Long recipeId) {
@@ -115,24 +111,14 @@ public class RecipesIngredientsService implements ServiceInterface<RecipesIngred
         repository.deleteByIngredient_IngredientId(ingredientId);
     }
 
-    public IngredientWithMeasurementDto mapRecepiesIngredientsToIngredientWithMeasurementDto(
-            RecipesIngredients recepiesIngredients) {
-        IngredientWithMeasurementDto dto = new IngredientWithMeasurementDto();
-        dto.setName(recepiesIngredients.getIngredient().getName());
-        dto.setIsVegetarian(recepiesIngredients.getIngredient().getIsVegetarian());
-        dto.setMetric(recepiesIngredients.getMetric());
-        dto.setQuantity(recepiesIngredients.getQuantity());
-        return dto;
-    }
-
     @Transactional
-    public Optional<RecipesIngredients> mapDtoAndSave(IngredientWithMeasurementDto ingredientDto,
+    public Optional<RecipesIngredients> saveDto(RecipesIngredientsWithMeasuresDto ingredientDto,
             Ingredient ingredient, Recipe recipe) {
 
         RecipesIngredientsId id = new RecipesIngredientsId(ingredient.getIngredientId(), recipe.getRecipeId());
 
-        RecipesIngredients recepiesIngredients = new RecipesIngredients(id, ingredientDto.getMetric(),
-                ingredientDto.getQuantity(), ingredient, recipe);
+        RecipesIngredients recepiesIngredients = recipesIngredientsMapper.toEntity(id, ingredient, recipe,
+                ingredientDto);
 
         Optional<RecipesIngredients> savedRecepiesIngredients = this.save(recepiesIngredients);
 
@@ -141,6 +127,17 @@ public class RecipesIngredientsService implements ServiceInterface<RecipesIngred
         } else {
             throw new RuntimeException(
                     "Error saving recepies ingredients: " + recepiesIngredients.getIngredient().getName());
+        }
+    }
+
+    @Transactional
+    public void saveIngredientsAndRecipesMeasurements(RecipesIngredientsWithMeasuresDto ingredientDto, Recipe recipe) {
+        Optional<Ingredient> savedIngredient = ingredientService.findOrSaveDto(ingredientDto);
+
+        if (savedIngredient.isPresent()) {
+            this.saveDto(ingredientDto, savedIngredient.get(), recipe);
+        } else {
+            throw new RuntimeException("Error saving ingredient: " + ingredientDto.getName());
         }
     }
 }

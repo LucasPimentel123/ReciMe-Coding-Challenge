@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.recime.recipeapi.dto.RecipesIngredients.RecipesIngredientsDto;
 import com.recime.recipeapi.dto.RecipesIngredients.RecipesIngredientsIdDto;
 import com.recime.recipeapi.model.RecipesIngredients;
-import com.recime.recipeapi.model.RecipesIngredientsId;
 import com.recime.recipeapi.service.RecipesIngredientsService;
 
 @RestController

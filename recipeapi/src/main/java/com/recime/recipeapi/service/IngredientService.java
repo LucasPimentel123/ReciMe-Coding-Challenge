@@ -8,20 +8,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.recime.recipeapi.dto.ingredient.IngredientDto;
-import com.recime.recipeapi.dto.ingredient.IngredientWithMeasurementDto;
+import com.recime.recipeapi.mapper.IngredientMapper;
+import com.recime.recipeapi.dto.RecipesIngredients.RecipesIngredientsWithMeasuresDto;
 import com.recime.recipeapi.model.Ingredient;
-import com.recime.recipeapi.model.Recipe;
 import com.recime.recipeapi.repository.IngredientRepository;
+import com.recime.recipeapi.repository.RecipesIngredientsRepository;
 
 @Service
 public class IngredientService implements ServiceInterface<Ingredient> {
 
     private final IngredientRepository repository;
-    private final RecipesIngredientsService recepiesIngredientsService;
+    private final RecipesIngredientsRepository recipesIngredientsRepository;
+    private final IngredientMapper ingredientMapper;
 
-    public IngredientService(IngredientRepository repository, RecipesIngredientsService recepiesIngredientsService) {
+    public IngredientService(IngredientRepository repository, RecipesIngredientsRepository recipesIngredientsRepository,
+            IngredientMapper ingredientMapper) {
         this.repository = repository;
-        this.recepiesIngredientsService = recepiesIngredientsService;
+        this.recipesIngredientsRepository = recipesIngredientsRepository;
+        this.ingredientMapper = ingredientMapper;
     }
 
     @Transactional
@@ -43,7 +47,7 @@ public class IngredientService implements ServiceInterface<Ingredient> {
     }
 
     public Optional<Ingredient> save(IngredientDto ingredientDto) {
-        Ingredient ingredient = new Ingredient(null, ingredientDto.getName(), ingredientDto.getIsVegetarian());
+        Ingredient ingredient = ingredientMapper.toEntity(ingredientDto);
         return this.save(ingredient);
     }
 
@@ -71,24 +75,15 @@ public class IngredientService implements ServiceInterface<Ingredient> {
 
     @Transactional
     public void delete(Long id) {
-        recepiesIngredientsService.deleteByIngredientId(id);
+        recipesIngredientsRepository.deleteByIngredient_IngredientId(id);
         repository.deleteById(id);
     }
 
     @Transactional
-    public void saveIngredientsAndRecipesMeasurements(IngredientWithMeasurementDto ingredientDto, Recipe recipe) {
-        Ingredient ingredient = mapIngredientWithMeasurementDtoToEntity(ingredientDto);
-        Optional<Ingredient> savedIngredient = repository.findByName(ingredient.getName())
+    public Optional<Ingredient> findOrSaveDto(RecipesIngredientsWithMeasuresDto ingredientDto) {
+        Ingredient ingredient = ingredientMapper.toEntity(ingredientDto);
+        return repository.findByName(ingredient.getName())
                 .or(() -> this.save(ingredient));
-
-        if (savedIngredient.isPresent()) {
-            recepiesIngredientsService.mapDtoAndSave(ingredientDto, savedIngredient.get(), recipe);
-        } else {
-            throw new RuntimeException("Error saving ingredient: " + ingredient.getName());
-        }
     }
 
-    public Ingredient mapIngredientWithMeasurementDtoToEntity(IngredientWithMeasurementDto ingredientDto) {
-        return new Ingredient(null, ingredientDto.getName(), ingredientDto.getIsVegetarian());
-    }
 }

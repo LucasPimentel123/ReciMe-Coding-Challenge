@@ -159,4 +159,9 @@ As there was no restriction regarding the use of AI tools, I leveraged them as p
 
 ##### Claude (Claude 3.5 Sonnet)
 
+- Assisted in writing and structuring configuration files, including `application.yml` and `application-test.yml`.
 - Guided the construction of dynamic queries using Spring Data JPA Specifications and `CriteriaBuilder`, including multi-join queries with conditional filters. (`RecipeSpecification`).
+
+##### Cursor
+
+- Used autocomplete with `Tab` to accelerate writing of boilerplate code and to assist with generating simple logic or repetitive tasks directly in the editor.

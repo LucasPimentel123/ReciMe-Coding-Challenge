@@ -45,7 +45,7 @@ public class IngredientController {
     public ResponseEntity<Ingredient> save(@RequestBody IngredientDto ingredientDto) {
         Optional<Ingredient> savedIngredient = service.save(ingredientDto);
         if (savedIngredient.isPresent()) {
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedIngredient.get());
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }

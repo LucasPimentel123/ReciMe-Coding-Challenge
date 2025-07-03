@@ -1,13 +1,13 @@
-package com.recime.recipeapi.dto.ingredient;
+package com.recime.recipeapi.dto.RecipesIngredients;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@AllArgsConstructor
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-public class IngredientWithMeasurementDto {
+public class RecipesIngredientsWithMeasuresDto {
     private String name;
     private Boolean isVegetarian;
     private String metric;
