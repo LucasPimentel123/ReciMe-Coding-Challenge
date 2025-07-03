@@ -17,7 +17,7 @@ import com.recime.recipeapi.repository.InstructionRepository;
 import com.recime.recipeapi.repository.RecipeRepository;
 
 @Service
-public class InstructionService implements ServiceInterface<Instruction> {
+public class InstructionService implements ServiceInterface<Instruction, InstructionDto> {
 
     private final InstructionRepository repository;
     private final RecipeRepository recipeRepository;
@@ -48,7 +48,7 @@ public class InstructionService implements ServiceInterface<Instruction> {
         }
     }
 
-    public Optional<Instruction> save(InstructionDto instructionDto) {
+    public Optional<Instruction> saveDto(InstructionDto instructionDto) {
         Optional<Recipe> recipe = recipeRepository.findById(instructionDto.getRecipeId());
         if (recipe.isPresent()) {
             Instruction instruction = instructionMapper.toEntity(instructionDto, recipe.get());

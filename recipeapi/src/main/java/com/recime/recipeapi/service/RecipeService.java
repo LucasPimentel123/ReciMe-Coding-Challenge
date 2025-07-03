@@ -20,7 +20,7 @@ import com.recime.recipeapi.repository.RecipeRepository;
 import com.recime.recipeapi.specification.RecipeSpecification;
 
 @Service
-public class RecipeService implements ServiceInterface<Recipe> {
+public class RecipeService implements ServiceInterface<Recipe, RecipeDto> {
 
     private final RecipeRepository repository;
     private final InstructionService instructionService;
@@ -51,6 +51,26 @@ public class RecipeService implements ServiceInterface<Recipe> {
         } catch (Exception ex) {
             return Collections.emptyList();
         }
+    }
+
+    @Transactional
+    public Optional<Recipe> saveDto(RecipeDto recipeRequestDto) {
+        Recipe recipeToSave = recipeMapper.toEntity(recipeRequestDto);
+
+        Optional<Recipe> savedRecipe = this.save(recipeToSave);
+
+        if (savedRecipe.isPresent()) {
+            try {
+                this.saveRecipeInstructions(recipeRequestDto.getInstructions(), savedRecipe.get());
+                this.saveRecipeIngredient(recipeRequestDto.getIngredients(), savedRecipe.get());
+            } catch (Exception ex) {
+                return Optional.empty();
+            }
+        } else {
+            return Optional.empty();
+        }
+
+        return savedRecipe;
     }
 
     public Optional<List<Recipe>> getAll(Specification<Recipe> specification) {
@@ -117,24 +137,6 @@ public class RecipeService implements ServiceInterface<Recipe> {
             return Optional.of(dto);
         }
         return Optional.empty();
-    }
-
-    @Transactional
-    public Optional<Recipe> saveDto(RecipeDto recipeRequestDto) {
-        Recipe recipeToSave = recipeMapper.toEntity(recipeRequestDto);
-
-        Optional<Recipe> savedRecipe = this.save(recipeToSave);
-
-        if (savedRecipe.isPresent()) {
-
-            this.saveRecipeInstructions(recipeRequestDto.getInstructions(), savedRecipe.get());
-            this.saveRecipeIngredient(recipeRequestDto.getIngredients(), savedRecipe.get());
-
-        } else {
-            return Optional.empty();
-        }
-
-        return savedRecipe;
     }
 
     private void saveRecipeInstructions(List<InstructionDto> instructions, Recipe recipe) {

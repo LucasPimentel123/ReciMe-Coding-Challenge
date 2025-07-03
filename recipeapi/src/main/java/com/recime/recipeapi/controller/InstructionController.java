@@ -46,12 +46,12 @@ public class InstructionController {
     }
 
     @PostMapping()
-    public ResponseEntity<InstructionDto> save(@RequestBody InstructionDto instructionDto) {
-        Optional<Instruction> savedInstruction = service.save(instructionDto);
+    public ResponseEntity<Instruction> save(@RequestBody InstructionDto instructionDto) {
+        Optional<Instruction> savedInstruction = service.saveDto(instructionDto);
         if (savedInstruction.isPresent()) {
-            return ResponseEntity.status(HttpStatus.CREATED).build();
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedInstruction.get());
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
     @PutMapping("/{id}")

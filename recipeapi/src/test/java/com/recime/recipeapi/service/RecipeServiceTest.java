@@ -145,4 +145,28 @@ public class RecipeServiceTest {
         assertNotNull(retrievedRecipe.get());
         assertEquals("Cacio e Pepe", retrievedRecipe.get().getTitle());
     }
+
+    @Test
+    public void getMappedResponseDtoById_ShouldReturnEmptyOptional_WhenRecipeDoesNotExist() {
+        Optional<RecipeResponseDto> recipe = recipeService.getMappedResponseDtoById(999L);
+        assertEquals(Optional.empty(), recipe);
+    }
+
+    @Test
+    @Transactional
+    public void saveDto_ShouldSaveRecipe_WhenRecipeDtoIsProvided() {
+        RecipeDto recipeDto = new RecipeDto("Test Recipe", "Test Description", 4, List.of(), List.of());
+        Optional<Recipe> savedRecipe = recipeService.saveDto(recipeDto);
+        assertNotNull(savedRecipe.get().getRecipeId());
+        assertEquals(recipeDto.getTitle(), savedRecipe.get().getTitle());
+    }
+
+    @Test
+    @Transactional
+    @Rollback
+    public void saveDto_ShouldReturnEmptyOptional_WhenExceptionOccurs() {
+        RecipeDto recipeDto = new RecipeDto(null, "Test Description", 4, List.of(), List.of());
+        Optional<Recipe> savedRecipe = recipeService.saveDto(recipeDto);
+        assertEquals(Optional.empty(), savedRecipe);
+    }
 }

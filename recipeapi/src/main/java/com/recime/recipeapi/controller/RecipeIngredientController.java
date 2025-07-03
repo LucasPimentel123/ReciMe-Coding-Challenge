@@ -39,11 +39,11 @@ public class RecipeIngredientController {
 
     @PostMapping()
     public ResponseEntity<RecipeIngredient> save(@RequestBody RecipeIngredientDto recepiesIngredientsDto) {
-        Optional<RecipeIngredient> savedRecepiesIngredients = service.save(recepiesIngredientsDto);
+        Optional<RecipeIngredient> savedRecepiesIngredients = service.saveDto(recepiesIngredientsDto);
         if (savedRecepiesIngredients.isPresent()) {
-            return ResponseEntity.status(HttpStatus.CREATED).build();
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedRecepiesIngredients.get());
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
     @PutMapping()

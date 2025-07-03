@@ -16,12 +16,11 @@ import com.recime.recipeapi.model.Ingredient;
 import com.recime.recipeapi.model.RecipeIngredient;
 import com.recime.recipeapi.model.RecipeIngredientId;
 import com.recime.recipeapi.model.Recipe;
-import com.recime.recipeapi.repository.IngredientRepository;
 import com.recime.recipeapi.repository.RecipeRepository;
 import com.recime.recipeapi.repository.RecipeIngredientRepository;
 
 @Service
-public class RecipeIngredientService implements ServiceInterface<RecipeIngredient> {
+public class RecipeIngredientService implements ServiceInterface<RecipeIngredient, RecipeIngredientDto> {
 
     private final RecipeIngredientRepository repository;
     private final IngredientService ingredientService;
@@ -56,7 +55,7 @@ public class RecipeIngredientService implements ServiceInterface<RecipeIngredien
         }
     }
 
-    public Optional<RecipeIngredient> save(RecipeIngredientDto recipeIngredientDto) {
+    public Optional<RecipeIngredient> saveDto(RecipeIngredientDto recipeIngredientDto) {
         Optional<Ingredient> ingredient = ingredientService.getById(recipeIngredientDto.getIngredientId());
         Optional<Recipe> recipe = recipeRepository.findById(recipeIngredientDto.getRecipeId());
         if (ingredient.isPresent() && recipe.isPresent()) {
@@ -69,8 +68,12 @@ public class RecipeIngredientService implements ServiceInterface<RecipeIngredien
         return Optional.empty();
     }
 
-    public List<RecipeIngredient> getAll() {
-        return repository.findAll();
+    public Optional<List<RecipeIngredient>> getAll() {
+        try {
+            return Optional.of(repository.findAll());
+        } catch (Exception ex) {
+            return Optional.empty();
+        }
     }
 
     public List<RecipeIngredientDto> getAllMappedToDto() {
@@ -131,12 +134,13 @@ public class RecipeIngredientService implements ServiceInterface<RecipeIngredien
     }
 
     @Transactional
-    public void saveIngredientsAndRecipesMeasurements(RecipeIngredientWithMeasuresDto recipeIngredientWithMeasuresDto,
+    public Optional<RecipeIngredient> saveIngredientsAndRecipesMeasurements(
+            RecipeIngredientWithMeasuresDto recipeIngredientWithMeasuresDto,
             Recipe recipe) {
         Optional<Ingredient> savedIngredient = ingredientService.findOrSaveDto(recipeIngredientWithMeasuresDto);
 
         if (savedIngredient.isPresent()) {
-            this.saveDto(recipeIngredientWithMeasuresDto, savedIngredient.get(), recipe);
+            return this.saveDto(recipeIngredientWithMeasuresDto, savedIngredient.get(), recipe);
         } else {
             throw new RuntimeException("Error saving ingredient: " + recipeIngredientWithMeasuresDto.getName());
         }

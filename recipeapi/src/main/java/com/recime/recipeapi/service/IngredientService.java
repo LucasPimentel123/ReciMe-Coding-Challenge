@@ -15,7 +15,7 @@ import com.recime.recipeapi.repository.IngredientRepository;
 import com.recime.recipeapi.repository.RecipeIngredientRepository;
 
 @Service
-public class IngredientService implements ServiceInterface<Ingredient> {
+public class IngredientService implements ServiceInterface<Ingredient, IngredientDto> {
 
     private final IngredientRepository repository;
     private final RecipeIngredientRepository recipeIngredientRepository;
@@ -46,13 +46,17 @@ public class IngredientService implements ServiceInterface<Ingredient> {
         }
     }
 
-    public Optional<Ingredient> save(IngredientDto ingredientDto) {
+    public Optional<Ingredient> saveDto(IngredientDto ingredientDto) {
         Ingredient ingredient = ingredientMapper.toEntity(ingredientDto);
         return this.save(ingredient);
     }
 
-    public List<Ingredient> getAllIngredients() {
-        return repository.findAll();
+    public Optional<List<Ingredient>> getAll() {
+        try {
+            return Optional.of(repository.findAll());
+        } catch (Exception ex) {
+            return Optional.empty();
+        }
     }
 
     public Optional<Ingredient> getById(Long id) {
