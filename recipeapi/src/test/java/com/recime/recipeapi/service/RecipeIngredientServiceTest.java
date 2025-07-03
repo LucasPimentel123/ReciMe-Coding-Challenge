@@ -3,7 +3,6 @@ package com.recime.recipeapi.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.annotation.DirtiesContext;
 
 import com.recime.recipeapi.dto.RecipeIngredient.RecipeIngredientDto;
 import com.recime.recipeapi.dto.RecipeIngredient.RecipeIngredientWithMeasuresDto;
@@ -27,6 +27,7 @@ import jakarta.transaction.Transactional;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class RecipeIngredientServiceTest {
 
     @Autowired
@@ -48,7 +49,7 @@ public class RecipeIngredientServiceTest {
         recipeRepository.deleteAll();
         ingredientRepository.deleteAll();
 
-        ingredientRepository.save(new Ingredient(null, "Ingredient 1", true));
+        ingredientRepository.save(new Ingredient(null, "Recipe Ingredient Service Test 1", true));
         recipeRepository.save(new Recipe(null, "Recipe 1", "Description 1", 1));
 
         recipeIngredientRepository.flush();
@@ -109,7 +110,7 @@ public class RecipeIngredientServiceTest {
     @Test
     public void saveIngredientsAndRecipesMeasurements_ShouldSaveRecipeIngredient_WhenRecipeIngredientDtoIsProvided() {
         RecipeIngredientWithMeasuresDto recipeIngredientWithMeasuresDto = new RecipeIngredientWithMeasuresDto(
-                "Ingredient 1", true, "g", 100.0);
+                "Recipe Ingredient Service Test 2", true, "g", 100.0);
         Recipe savedRecipe = recipeRepository.findAll().get(0);
         Optional<RecipeIngredient> savedRecipeIngredient = recipeIngredientService
                 .saveIngredientsAndRecipesMeasurements(recipeIngredientWithMeasuresDto, savedRecipe);
@@ -121,7 +122,7 @@ public class RecipeIngredientServiceTest {
     @Test
     public void saveIngredientsAndRecipesMeasurements_ShouldThrowException_WhenExceptionOccurs() {
         RecipeIngredientWithMeasuresDto recipeIngredientWithMeasuresDto = new RecipeIngredientWithMeasuresDto(
-                "Ingredient 1", true, "g", 100.0);
+                "Recipe Ingredient Service Test 3", true, "g", 100.0);
         Recipe savedRecipe = recipeRepository.findAll().get(0);
         try {
             recipeIngredientService.saveIngredientsAndRecipesMeasurements(recipeIngredientWithMeasuresDto, savedRecipe);

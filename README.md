@@ -108,6 +108,8 @@ Other controllers (such as `IngredientController`, `InstructionController`, `Rec
 
 - **Ingredients and Instructions as separate entities:**: To ensure better scalability, data organization, and query efficiency, both Ingredients and Instructions were modeled as independent entities, each with a dedicated relationship to the main `Recipe` entity.
 - **isVegetarian as a INGREDIENT atribute:** To support the "vegetarian" filter required in the challenge, recipes need to be flagged accordingly. Instead of marking recipes directly, the isVegetarian flag was added to the Ingredient entity. A recipe is considered vegetarian only if all its ingredients are marked as vegetarian. This approach ensures consistency and better scalability.
+- **Non-unique recipe titles**: The title field of the Recipe entity is not enforced as unique. This decision was based on how the ReciMe app works in practice — recipes are often imported from video/audio content on social media, where many users may submit similarly named recipes with different ingredients or preparation styles. Enforcing unique titles would limit usability and introduce unnecessary friction.
+- **Unique constraint on Ingredient `name`:** To encourage data reuse and avoid unnecessary duplication in the database, the `name` atribute of the `Ingredient` entity is marked as unique.
 
 ### Database Seeding
 
@@ -142,9 +144,44 @@ Given that this is a Spring Boot project, I followed the framework’s standard 
 Source: https://spring.io
 </p>
 
-#### Assumptions and Decisions
+#### Package Diagram
 
-- **Layered architecture:**
+To better illustrate the modular structure of the project, the following Package Diagram shows the main packages and their responsibilities:
+
+<p align="center">
+  <img src="./assets/packageDiagram.png" alt="Spring Architecture Diagram" width="450"/>
+</p>
+
+**Package Responsibilities:**
+
+- `controller` – Handles HTTP requests and maps them to service layer calls. Follows REST principles.
+
+- `service` – Contains the business logic of the application, acting as a bridge between controllers and repositories.
+
+- `repository` – Interfaces that interact with the database using Spring Data JPA.
+
+- `model` – Domain entities that map to database tables (annotated with JPA/Hibernate).
+
+- `dto` – Data Transfer Objects used to expose or receive data via API endpoints.
+
+- `mapper` – Classes responsible for converting between entities and DTOs.
+
+- `specification` – Contains dynamic query logic using Specification and CriteriaBuilder.
+
+- `config` – Contains general project configurations (database seeding)
+
+## Unit Tests
+
+The project includes unit tests for the most relevant methods within the `Service` layer, the part of the application responsible for the core business logic.
+
+#### Running the tests
+
+To run all unit tests, use the following command from the project root:
+
+```bash
+cd recipeapi
+./mvnw test
+```
 
 ## AI Usage
 
@@ -161,6 +198,7 @@ As there was no restriction regarding the use of AI tools, I leveraged them as p
 
 - Assisted in writing and structuring configuration files, including `application.yml` and `application-test.yml`.
 - Guided the construction of dynamic queries using Spring Data JPA Specifications and `CriteriaBuilder`, including multi-join queries with conditional filters. (`RecipeSpecification`).
+- Helped determine when to use `@DirtiesContext` to isolate tests and avoid side effects in database-related operations (Unique Key Constraint Errors).
 
 ##### Cursor
 

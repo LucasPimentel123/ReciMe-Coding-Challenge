@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.annotation.DirtiesContext;
 
 import com.recime.recipeapi.dto.RecipeIngredient.RecipeIngredientWithMeasuresDto;
 import com.recime.recipeapi.dto.ingredient.IngredientDto;
@@ -24,6 +25,7 @@ import jakarta.transaction.Transactional;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class IngredientServiceTest {
 
     @Autowired
@@ -41,14 +43,14 @@ public class IngredientServiceTest {
         recipeIngredientRepository.deleteAll();
         ingredientRepository.deleteAll();
         ingredientRepository.saveAll(List.of(
-                new Ingredient(null, "Test Ingredient", true),
-                new Ingredient(null, "Test Ingredient 2", false)));
+                new Ingredient(null, "Test Ingredient Service 1", true),
+                new Ingredient(null, "Test Ingredient Service 2", false)));
         ingredientRepository.flush();
     }
 
     @Test
     public void save_ShouldSaveIngredient_WhenIngredientIsProvided() {
-        Ingredient ingredient = new Ingredient(null, "Test Ingredient 3", true);
+        Ingredient ingredient = new Ingredient(null, "Test Ingredient Service 3", true);
         Optional<Ingredient> savedIngredient = ingredientService.save(ingredient);
         assertNotNull(savedIngredient.get().getIngredientId());
         assertEquals(ingredient.getName(), savedIngredient.get().getName());
@@ -65,7 +67,7 @@ public class IngredientServiceTest {
 
     @Test
     public void saveDto_ShouldSaveIngredient_WhenIngredientDtoIsProvided() {
-        IngredientDto ingredientDto = new IngredientDto("Test Ingredient 3", true);
+        IngredientDto ingredientDto = new IngredientDto("Test Ingredient Service 4", true);
         Optional<Ingredient> savedIngredient = ingredientService.saveDto(ingredientDto);
         assertNotNull(savedIngredient.get().getIngredientId());
         assertEquals(ingredientDto.getName(), savedIngredient.get().getName());
@@ -87,14 +89,14 @@ public class IngredientServiceTest {
 
     @Test
     public void update_ShouldReturnEmptyOptional_WhenIngredientDoesNotExist() {
-        IngredientDto ingredientDto = new IngredientDto("Test Ingredient 3", true);
+        IngredientDto ingredientDto = new IngredientDto("Test Ingredient 5", true);
         Optional<Ingredient> updatedIngredient = ingredientService.update(999L, ingredientDto);
         assertEquals(Optional.empty(), updatedIngredient);
     }
 
     @Test
     public void findOrSaveDto_ShouldFindIngredient_WhenIngredientExists() {
-        RecipeIngredientWithMeasuresDto ingredientDto = new RecipeIngredientWithMeasuresDto("Test Ingredient", true,
+        RecipeIngredientWithMeasuresDto ingredientDto = new RecipeIngredientWithMeasuresDto("Test Ingredient 6", true,
                 "g", 100.0);
         Optional<Ingredient> ingredientDb = ingredientService.findOrSaveDto(ingredientDto);
         assertNotNull(ingredientDb.get().getIngredientId());
@@ -103,7 +105,7 @@ public class IngredientServiceTest {
 
     @Test
     public void findOrSaveDto_ShouldSaveIngredient_WhenIngredientDoesNotExist() {
-        RecipeIngredientWithMeasuresDto ingredientDto = new RecipeIngredientWithMeasuresDto("Test Ingredient 3", true,
+        RecipeIngredientWithMeasuresDto ingredientDto = new RecipeIngredientWithMeasuresDto("Test Ingredient 7", true,
                 "g", 100.0);
         Optional<Ingredient> savedIngredient = ingredientService.findOrSaveDto(ingredientDto);
         assertNotNull(savedIngredient.get().getIngredientId());
