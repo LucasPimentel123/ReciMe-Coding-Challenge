@@ -7,24 +7,24 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.recime.recipeapi.dto.RecipeIngredient.RecipeIngredientWithMeasuresDto;
 import com.recime.recipeapi.dto.ingredient.IngredientDto;
 import com.recime.recipeapi.mapper.IngredientMapper;
-import com.recime.recipeapi.dto.RecipesIngredients.RecipesIngredientsWithMeasuresDto;
 import com.recime.recipeapi.model.Ingredient;
 import com.recime.recipeapi.repository.IngredientRepository;
-import com.recime.recipeapi.repository.RecipesIngredientsRepository;
+import com.recime.recipeapi.repository.RecipeIngredientRepository;
 
 @Service
 public class IngredientService implements ServiceInterface<Ingredient> {
 
     private final IngredientRepository repository;
-    private final RecipesIngredientsRepository recipesIngredientsRepository;
+    private final RecipeIngredientRepository recipeIngredientRepository;
     private final IngredientMapper ingredientMapper;
 
-    public IngredientService(IngredientRepository repository, RecipesIngredientsRepository recipesIngredientsRepository,
+    public IngredientService(IngredientRepository repository, RecipeIngredientRepository recipeIngredientRepository,
             IngredientMapper ingredientMapper) {
         this.repository = repository;
-        this.recipesIngredientsRepository = recipesIngredientsRepository;
+        this.recipeIngredientRepository = recipeIngredientRepository;
         this.ingredientMapper = ingredientMapper;
     }
 
@@ -75,12 +75,12 @@ public class IngredientService implements ServiceInterface<Ingredient> {
 
     @Transactional
     public void delete(Long id) {
-        recipesIngredientsRepository.deleteByIngredient_IngredientId(id);
+        recipeIngredientRepository.deleteByIngredient_IngredientId(id);
         repository.deleteById(id);
     }
 
     @Transactional
-    public Optional<Ingredient> findOrSaveDto(RecipesIngredientsWithMeasuresDto ingredientDto) {
+    public Optional<Ingredient> findOrSaveDto(RecipeIngredientWithMeasuresDto ingredientDto) {
         Ingredient ingredient = ingredientMapper.toEntity(ingredientDto);
         return repository.findByName(ingredient.getName())
                 .or(() -> this.save(ingredient));

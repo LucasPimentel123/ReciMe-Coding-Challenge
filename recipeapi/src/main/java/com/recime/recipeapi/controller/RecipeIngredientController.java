@@ -13,23 +13,23 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.recime.recipeapi.dto.RecipesIngredients.RecipesIngredientsDto;
-import com.recime.recipeapi.dto.RecipesIngredients.RecipesIngredientsIdDto;
-import com.recime.recipeapi.model.RecipesIngredients;
-import com.recime.recipeapi.service.RecipesIngredientsService;
+import com.recime.recipeapi.dto.RecipeIngredient.RecipeIngredientDto;
+import com.recime.recipeapi.dto.RecipeIngredient.RecipeIngredientIdDto;
+import com.recime.recipeapi.model.RecipeIngredient;
+import com.recime.recipeapi.service.RecipeIngredientService;
 
 @RestController
 @RequestMapping("/recipe-ingredients")
-public class RecipesIngredientsController {
+public class RecipeIngredientController {
 
-    private final RecipesIngredientsService service;
+    private final RecipeIngredientService service;
 
-    public RecipesIngredientsController(RecipesIngredientsService service) {
+    public RecipeIngredientController(RecipeIngredientService service) {
         this.service = service;
     }
 
     @GetMapping()
-    public ResponseEntity<List<RecipesIngredientsDto>> getAll() {
+    public ResponseEntity<List<RecipeIngredientDto>> getAll() {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(service.getAllMappedToDto());
         } catch (Exception ex) {
@@ -38,8 +38,8 @@ public class RecipesIngredientsController {
     }
 
     @PostMapping()
-    public ResponseEntity<RecipesIngredients> save(@RequestBody RecipesIngredientsDto recepiesIngredientsDto) {
-        Optional<RecipesIngredients> savedRecepiesIngredients = service.save(recepiesIngredientsDto);
+    public ResponseEntity<RecipeIngredient> save(@RequestBody RecipeIngredientDto recepiesIngredientsDto) {
+        Optional<RecipeIngredient> savedRecepiesIngredients = service.save(recepiesIngredientsDto);
         if (savedRecepiesIngredients.isPresent()) {
             return ResponseEntity.status(HttpStatus.CREATED).build();
         }
@@ -47,16 +47,16 @@ public class RecipesIngredientsController {
     }
 
     @PutMapping()
-    public ResponseEntity<RecipesIngredients> update(@RequestBody RecipesIngredientsDto recepiesIngredientsDto) {
-        Optional<RecipesIngredients> updatedRecepiesIngredients = service.update(recepiesIngredientsDto);
+    public ResponseEntity<RecipeIngredient> update(@RequestBody RecipeIngredientDto recepiesIngredientsDto) {
+        Optional<RecipeIngredient> updatedRecepiesIngredients = service.update(recepiesIngredientsDto);
         if (updatedRecepiesIngredients.isPresent()) {
-            return ResponseEntity.status(HttpStatus.OK).build();
+            return ResponseEntity.status(HttpStatus.OK).body(updatedRecepiesIngredients.get());
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @DeleteMapping()
-    public ResponseEntity<RecipesIngredients> delete(@RequestBody RecipesIngredientsIdDto recepiesIngredientsIdDto) {
+    public ResponseEntity<RecipeIngredient> delete(@RequestBody RecipeIngredientIdDto recepiesIngredientsIdDto) {
         try {
             service.delete(recepiesIngredientsIdDto);
             return ResponseEntity.status(HttpStatus.OK).build();

@@ -1,11 +1,11 @@
-package com.recime.recipeapi.dto.RecipesIngredients;
+package com.recime.recipeapi.dto.RecipeIngredient;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class RecipesIngredientsDto {
+public class RecipeIngredientDto {
     private Long ingredientId;
     private Long recipeId;
     private String metric;

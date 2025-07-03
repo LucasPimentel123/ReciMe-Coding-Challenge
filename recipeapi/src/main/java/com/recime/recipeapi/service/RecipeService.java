@@ -9,7 +9,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.recime.recipeapi.dto.RecipesIngredients.RecipesIngredientsWithMeasuresDto;
+import com.recime.recipeapi.dto.RecipeIngredient.RecipeIngredientWithMeasuresDto;
 import com.recime.recipeapi.dto.instruction.InstructionDto;
 import com.recime.recipeapi.dto.recipe.RecipeDto;
 import com.recime.recipeapi.dto.recipe.RecipeResponseDto;
@@ -24,14 +24,14 @@ public class RecipeService implements ServiceInterface<Recipe> {
 
     private final RecipeRepository repository;
     private final InstructionService instructionService;
-    private final RecipesIngredientsService recipesIngredientsService;
+    private final RecipeIngredientService recipeIngredientService;
     private final RecipeMapper recipeMapper;
 
     public RecipeService(RecipeRepository repository, InstructionService instructionService,
-            RecipesIngredientsService recipesIngredientsService, RecipeMapper recipeMapper) {
+            RecipeIngredientService recipeIngredientService, RecipeMapper recipeMapper) {
         this.repository = repository;
         this.instructionService = instructionService;
-        this.recipesIngredientsService = recipesIngredientsService;
+        this.recipeIngredientService = recipeIngredientService;
         this.recipeMapper = recipeMapper;
     }
 
@@ -72,7 +72,7 @@ public class RecipeService implements ServiceInterface<Recipe> {
     @Transactional
     public void delete(Long id) {
         instructionService.deleteByRecipeId(id);
-        recipesIngredientsService.deleteByRecipeId(id);
+        recipeIngredientService.deleteByRecipeId(id);
         repository.deleteById(id);
     }
 
@@ -101,7 +101,7 @@ public class RecipeService implements ServiceInterface<Recipe> {
         if (recipes.isPresent()) {
             return recipes.get().stream()
                     .map(recipe -> recipeMapper.toResponseDto(recipe, recipe.getInstructions(),
-                            recipe.getRecipiesIngredients()))
+                            recipe.getRecipeIngredient()))
                     .collect(Collectors.toList());
         }
 
@@ -113,7 +113,7 @@ public class RecipeService implements ServiceInterface<Recipe> {
         Optional<Recipe> recipe = this.getById(id);
         if (recipe.isPresent()) {
             RecipeResponseDto dto = recipeMapper.toResponseDto(recipe.get(),
-                    recipe.get().getInstructions(), recipe.get().getRecipiesIngredients());
+                    recipe.get().getInstructions(), recipe.get().getRecipeIngredient());
             return Optional.of(dto);
         }
         return Optional.empty();
@@ -128,7 +128,7 @@ public class RecipeService implements ServiceInterface<Recipe> {
         if (savedRecipe.isPresent()) {
 
             this.saveRecipeInstructions(recipeRequestDto.getInstructions(), savedRecipe.get());
-            this.saveRecipeIngredients(recipeRequestDto.getIngredients(), savedRecipe.get());
+            this.saveRecipeIngredient(recipeRequestDto.getIngredients(), savedRecipe.get());
 
         } else {
             return Optional.empty();
@@ -142,9 +142,11 @@ public class RecipeService implements ServiceInterface<Recipe> {
     }
 
     @Transactional
-    private void saveRecipeIngredients(List<RecipesIngredientsWithMeasuresDto> ingredients, Recipe recipe) {
-        ingredients
-                .forEach(ingredientDto -> recipesIngredientsService.saveIngredientsAndRecipesMeasurements(ingredientDto,
-                        recipe));
+    private void saveRecipeIngredient(List<RecipeIngredientWithMeasuresDto> recipeIngredientWithMeasuresDtos,
+            Recipe recipe) {
+        recipeIngredientWithMeasuresDtos
+                .forEach(recipeIngredientWithMeasuresDto -> recipeIngredientService
+                        .saveIngredientsAndRecipesMeasurements(recipeIngredientWithMeasuresDto,
+                                recipe));
     }
 }

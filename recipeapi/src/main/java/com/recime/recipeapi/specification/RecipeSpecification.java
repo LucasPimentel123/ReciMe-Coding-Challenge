@@ -9,7 +9,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import com.recime.recipeapi.model.Ingredient;
 import com.recime.recipeapi.model.Instruction;
-import com.recime.recipeapi.model.RecipesIngredients;
+import com.recime.recipeapi.model.RecipeIngredient;
 import com.recime.recipeapi.model.Recipe;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -62,8 +62,8 @@ public class RecipeSpecification {
             CriteriaQuery<?> query, Root<Recipe> root) {
         Subquery<Long> subquery = query.subquery(Long.class);
         Root<Recipe> subRoot = subquery.from(Recipe.class);
-        Join<Recipe, RecipesIngredients> subRecipeIngredientsJoin = subRoot.join("recipiesIngredients");
-        Join<RecipesIngredients, Ingredient> subIngredientsJoin = subRecipeIngredientsJoin.join("ingredient");
+        Join<Recipe, RecipeIngredient> subRecipeIngredientJoin = subRoot.join("recipeIngredient");
+        Join<RecipeIngredient, Ingredient> subIngredientsJoin = subRecipeIngredientJoin.join("ingredient");
 
         subquery.select(subRoot.get("recipeId"))
                 .where(cb.equal(subIngredientsJoin.get("isVegetarian"), false));
@@ -75,8 +75,8 @@ public class RecipeSpecification {
             CriteriaQuery<?> query, Root<Recipe> root, Boolean isInclude) {
         Subquery<Long> subquery = query.subquery(Long.class);
         Root<Recipe> subRoot = subquery.from(Recipe.class);
-        Join<Recipe, RecipesIngredients> subRecipeIngredientsJoin = subRoot.join("recipiesIngredients");
-        Join<RecipesIngredients, Ingredient> subIngredientsJoin = subRecipeIngredientsJoin.join("ingredient");
+        Join<Recipe, RecipeIngredient> subRecipeIngredientJoin = subRoot.join("recipeIngredient");
+        Join<RecipeIngredient, Ingredient> subIngredientsJoin = subRecipeIngredientJoin.join("ingredient");
 
         subquery.select(subRoot.get("recipeId"))
                 .where(cb.lower(subIngredientsJoin.get("name")).in(ingredients.stream()

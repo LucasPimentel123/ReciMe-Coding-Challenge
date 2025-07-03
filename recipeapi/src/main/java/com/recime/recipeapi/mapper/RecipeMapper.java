@@ -7,27 +7,27 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import com.recime.recipeapi.dto.RecipesIngredients.RecipesIngredientsWithMeasuresDto;
+import com.recime.recipeapi.dto.RecipeIngredient.RecipeIngredientWithMeasuresDto;
 import com.recime.recipeapi.dto.instruction.InstructionDto;
 import com.recime.recipeapi.dto.recipe.RecipeDto;
 import com.recime.recipeapi.dto.recipe.RecipeResponseDto;
 import com.recime.recipeapi.model.Instruction;
 import com.recime.recipeapi.model.Recipe;
-import com.recime.recipeapi.model.RecipesIngredients;
+import com.recime.recipeapi.model.RecipeIngredient;
 
 @Component
 public class RecipeMapper {
 
     private final InstructionMapper instructionMapper;
-    private final RecipesIngredientsMapper recipesIngredientsMapper;
+    private final RecipeIngredientMapper recipeIngredientMapper;
 
-    public RecipeMapper(InstructionMapper instructionMapper, RecipesIngredientsMapper recipesIngredientsMapper) {
+    public RecipeMapper(InstructionMapper instructionMapper, RecipeIngredientMapper recipeIngredientMapper) {
         this.instructionMapper = instructionMapper;
-        this.recipesIngredientsMapper = recipesIngredientsMapper;
+        this.recipeIngredientMapper = recipeIngredientMapper;
     }
 
     public RecipeResponseDto toResponseDto(Recipe recipe, List<Instruction> instructions,
-            List<RecipesIngredients> recipiesIngredients) {
+            List<RecipeIngredient> recipeIngredients) {
 
         List<InstructionDto> instructionDtos = instructions == null
                 ? Collections.emptyList()
@@ -36,10 +36,10 @@ public class RecipeMapper {
                         .sorted(Comparator.comparing(InstructionDto::getStep))
                         .collect(Collectors.toList());
 
-        List<RecipesIngredientsWithMeasuresDto> ingredientWithMeasurementDtos = recipiesIngredients == null
+        List<RecipeIngredientWithMeasuresDto> ingredientWithMeasurementDtos = recipeIngredients == null
                 ? Collections.emptyList()
-                : recipiesIngredients.stream()
-                        .map(recipesIngredientsMapper::toRecipesIngredientsWithMeasuresDto)
+                : recipeIngredients.stream()
+                        .map(recipeIngredientMapper::toRecipeIngredientWithMeasuresDto)
                         .collect(Collectors.toList());
 
         return new RecipeResponseDto(recipe.getRecipeId(), recipe.getTitle(), recipe.getDescription(),

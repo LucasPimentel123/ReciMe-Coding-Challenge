@@ -37,6 +37,6 @@ public class Recipe {
     private List<Instruction> instructions;
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
-    private List<RecipesIngredients> recipiesIngredients;
+    private List<RecipeIngredient> recipeIngredient;
 
 }
